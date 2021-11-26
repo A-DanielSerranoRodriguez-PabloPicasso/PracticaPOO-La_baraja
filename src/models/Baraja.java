@@ -30,18 +30,16 @@ public class Baraja {
 				}
 			}
 		} else if (tipoBaraja == 2) {
-			int cont = 0, j = 1;
+			int cont = 0;
 			this.lista_cartas = new ArrayList<Carta>(80);
 
 			while (cont < 2) {
 				for (int i = 1; i <= 40; i++) {
 					try {
-						this.lista_cartas.add(new Carta(j));
-						j++;
+						this.lista_cartas.add(new Carta(i));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-
 				}
 				cont++;
 			}
