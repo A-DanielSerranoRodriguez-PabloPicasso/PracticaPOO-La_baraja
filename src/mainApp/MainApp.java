@@ -1,4 +1,4 @@
-package mainapp;
+package mainApp;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -119,17 +119,17 @@ public class MainApp {
 		double puntos1 = 0, puntos2 = 0, visible1 = 0, visible2 = 0;
 		int opc = 0, robado1 = 0, robado2 = 0;
 
-		cartas1.add(baraja.robar());
-		cartas2.add(baraja.robar());
+//		cartas1.add(baraja.robar());
+//		cartas2.add(baraja.robar());
 
 		while (!pasar1 || !pasar2) {
 			System.out.println("\n");
 			if (!turno) {
 				pasar1 = false;
+				
+				if (cartas1.size() == 0) {
+					puntos1 = puntos(puntos1, carta, cartas1, baraja);
 
-				if (cartas1.size() == 1) {
-					carta = cartas1.get(0);
-					puntos1 = carta.getValor7yMedia();
 					visible1 = puntos1;
 				}
 
@@ -164,9 +164,10 @@ public class MainApp {
 			} else if (turno && !ia) {
 				pasar2 = false;
 
-				if (cartas2.size() == 1) {
-					carta = cartas2.get(0);
-					puntos2 = carta.getValor7yMedia();
+				if (cartas2.size() == 0) {
+					puntos2 = puntos(puntos2, carta, cartas2, baraja);
+
+					visible2 = puntos2;
 				}
 
 				System.out.println("Turno de " + jugador2 + ". Puntuacion: " + puntos2 + "\n¿Que vas a hacer?");
@@ -200,9 +201,9 @@ public class MainApp {
 			} else if (turno && ia) {
 				pasar2 = false;
 
-				if (cartas2.size() == 1) {
-					carta = cartas2.get(0);
-					puntos2 = carta.getValor7yMedia();
+				if (cartas2.size() == 0) {
+					puntos2 = puntos(puntos2, carta, cartas2, baraja);
+
 					visible2 = puntos2;
 					System.out.println("Turno de " + jugador2 + ". Puntuacion: " + visible2);
 				} else {
@@ -211,34 +212,24 @@ public class MainApp {
 
 				if (robado1 < 3) {
 					if (puntos2 < 4 && visible1 < 4) {
-						cartas2.add(baraja.robar());
-						carta = cartas2.get(cartas2.size() - 1);
-						puntos2 += carta.getValor7yMedia();
+						puntos2 = puntos(puntos2, carta, cartas2, baraja);
 						robado2++;
 					} else if (puntos2 >= 4 && puntos2 <= 5) {
-						cartas2.add(baraja.robar());
-						carta = cartas2.get(cartas2.size() - 1);
-						puntos2 += carta.getValor7yMedia();
+						puntos2 = puntos(puntos2, carta, cartas2, baraja);
 						robado2++;
 					} else if (puntos2 > 5) {
 						pasar2 = true;
 					} else if (pasar1 = true){
-						cartas2.add(baraja.robar());
-						carta = cartas2.get(cartas2.size() - 1);
-						puntos2 += carta.getValor7yMedia();
+						puntos2 = puntos(puntos2, carta, cartas2, baraja);
 						robado2++;
 					}
 				} else if (robado1 >= 3) {
 					if (puntos2 <= 4) {
-						cartas2.add(baraja.robar());
-						carta = cartas2.get(cartas2.size() - 1);
-						puntos2 += carta.getValor7yMedia();
+						puntos2 = puntos(puntos2, carta, cartas2, baraja);
 						robado2++;
 					} else {
 						if (pasar1) {
-							cartas2.add(baraja.robar());
-							carta = cartas2.get(cartas2.size() - 1);
-							puntos2 += carta.getValor7yMedia();
+							puntos2 = puntos(puntos2, carta, cartas2, baraja);
 							robado2++;
 						} else {
 							pasar2 = true;
@@ -270,7 +261,7 @@ public class MainApp {
 			System.out.println("\nEMPATE con un " + puntos1 + "\n\n");
 		}
 	}
-
+	
 	private static boolean accion(int opc) {
 		switch (opc) {
 		case 1:
