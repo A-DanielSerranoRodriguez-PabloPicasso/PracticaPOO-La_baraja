@@ -5,6 +5,7 @@ import java.util.Scanner;
 
 import models.Baraja;
 import models.Carta;
+import models.Persona;
 
 public class MainApp {
 	static Scanner sc = new Scanner(System.in);
@@ -18,9 +19,11 @@ public class MainApp {
 			System.out.print("->: ");
 			opc = Integer.parseInt(sc.next());
 		} while (jugar(opc));
+
+		sc.close();
 	}
 
-	private static boolean jugar(int opc) {
+	public static boolean jugar(int opc) {
 		switch (opc) {
 		case 1:
 			System.out.println();
@@ -39,37 +42,47 @@ public class MainApp {
 		return true;
 	}
 
-	private static void juego() {
+	public static void juego() {
+		ArrayList<Persona> jugadores = new ArrayList<Persona>();
+		ArrayList<Carta> cartas1 = new ArrayList<Carta>(), cartas2 = new ArrayList<Carta>();
 		Baraja baraja = new Baraja();
-		Scanner sc = new Scanner(System.in);
+
 		String jugador1 = "", jugador2 = "";
-		boolean error;
-		boolean ia = false;
+		boolean error = false, ia = false;
+
+		System.out.println("\n¿Cuantas cartas se van a usar?");
+		System.out.println("\n1. 40\n2. 80");
+
+		do {
+			System.out.print("->: ");
+			baraja = baraja(Integer.parseInt(sc.next()), baraja);
+		} while (baraja == null);
 
 		System.out.println();
-		System.out.println("¿Como quieres jugar?");
+		System.out.println("\n¿Como se va a jugar?");
 		System.out.println("\n1. Con el ordenador\n2. Con otro jugador");
+
 		do {
 			System.out.print("->: ");
 			switch (Integer.parseInt(sc.next())) {
 			case 1:
-				ia = true;
-				error = false;
 				System.out.println();
 				System.out.println("### Jugador ###");
 				jugador1 = nombres();
 				jugador2 = "Ordenador";
+				ia = true;
+				error = false;
 				break;
 
 			case 2:
-				ia = false;
-				error = false;
 				System.out.println();
 				System.out.println("### Jugador 1 ###");
 				jugador1 = nombres();
 				System.out.println();
 				System.out.println("### Jugador 2 ###");
 				jugador2 = nombres();
+				ia = false;
+				error = false;
 				break;
 
 			default:
@@ -79,17 +92,28 @@ public class MainApp {
 			}
 		} while (error);
 
-		System.out.println("\n\n¿Cuantas cartas quereis usar?");
-		System.out.println("\n1. 40\n2. 80");
-		do {
-			System.out.print("->: ");
-			baraja = baraja(Integer.parseInt(sc.next()), baraja);
-		} while (baraja == null);
+		if (ia) {
 
-		partida(jugador1, jugador2, ia, baraja);
+			Persona persona1 = new Persona(jugador1, cartas1, baraja);
+			jugadores.add(persona1);
+			Persona persona2 = new Persona(jugador2, cartas2, baraja);
+			jugadores.add(persona2);
+
+			partida(ia, jugadores, baraja);
+
+		} else {
+
+			Persona persona1 = new Persona(jugador1, cartas1, baraja);
+			jugadores.add(persona1);
+			Persona persona2 = new Persona(jugador2, cartas2, baraja);
+			jugadores.add(persona2);
+
+			partida(jugadores, baraja);
+		}
+
 	}
 
-	private static Baraja baraja(int num, Baraja baraja) {
+	public static Baraja baraja(int num, Baraja baraja) {
 		switch (num) {
 		case 1:
 			return baraja = new Baraja(num, true);
@@ -98,187 +122,163 @@ public class MainApp {
 			return baraja = new Baraja(num, true);
 
 		default:
-			System.out.println("\nElige una opcion correcta\n");
+			System.out.println("\nElige una opcion correcta");
 			return baraja = null;
 		}
 	}
 
-	private static String nombres() {
+	public static String nombres() {
 		String nom;
-		Scanner sc = new Scanner(System.in);
 
 		System.out.print("Nombre: ");
 		nom = sc.next();
 		return nom;
 	}
 
-	private static void partida(String jugador1, String jugador2, boolean ia, Baraja baraja) {
-		ArrayList<Carta> cartas1 = new ArrayList<Carta>(), cartas2 = new ArrayList<Carta>();
-		Carta carta = null;
-		boolean turno = false, pasar1 = false, pasar2 = false;
-		double puntos1 = 0, puntos2 = 0, visible1 = 0, visible2 = 0;
-		int opc = 0, robado1 = 0, robado2 = 0;
+	public static void partida(boolean ia, ArrayList<Persona> jugadores, Baraja baraja) {
+		boolean turno = false;
 
-//		cartas1.add(baraja.robar());
-//		cartas2.add(baraja.robar());
-
-		while (!pasar1 || !pasar2) {
+		while (!jugadores.get(0).getPasar() || !jugadores.get(1).getPasar()) {
 			System.out.println("\n");
 			if (!turno) {
-				pasar1 = false;
-				
-				if (cartas1.size() == 0) {
-					puntos1 = puntos(puntos1, carta, cartas1, baraja);
 
-					visible1 = puntos1;
-				}
-
-				System.out.println("Turno de " + jugador1 + ". Puntuacion: " + puntos1 + "\n¿Que vas a hacer?");
-
-				System.out.println("\n1. Coger\n2. Pasar");
-
-				do {
-					System.out.print("->: ");
-					opc = Integer.parseInt(sc.next());
-				} while (!accion(opc));
-
-				do {
-					switch (opc) {
-					case 1:
-						puntos1 = puntos(puntos1, carta, cartas1, baraja);
-						robado1++;
-						break;
-
-					case 2:
-						pasar1 = true;
-						break;
-
-					default:
-						opc = -1;
-						break;
-					}
-				} while (opc == -1);
-
+				Persona persona = jugadores.get(0);
+				turno(persona, baraja);
 				turno = true;
 
-			} else if (turno && !ia) {
-				pasar2 = false;
+			} else if (turno) {
 
-				if (cartas2.size() == 0) {
-					puntos2 = puntos(puntos2, carta, cartas2, baraja);
-
-					visible2 = puntos2;
+				if (jugadores.get(1).getCantidadCartas() == 0) {
+					jugadores.get(1).robar7yMedia();
 				}
 
-				System.out.println("Turno de " + jugador2 + ". Puntuacion: " + puntos2 + "\n¿Que vas a hacer?");
-
-				System.out.println("\n1. Coger\n2. Pasar");
-
-				do {
-					System.out.print("->: ");
-					opc = Integer.parseInt(sc.next());
-				} while (!accion(opc));
-
-				do {
-					switch (opc) {
-					case 1:
-						puntos2 = puntos(puntos2, carta, cartas2, baraja);
-						robado2++;
-						break;
-
-					case 2:
-						pasar2 = true;
-						break;
-
-					default:
-						opc = -1;
-						break;
-					}
-				} while (opc == -1);
-
-				turno = false;
-
-			} else if (turno && ia) {
-				pasar2 = false;
-
-				if (cartas2.size() == 0) {
-					puntos2 = puntos(puntos2, carta, cartas2, baraja);
-
-					visible2 = puntos2;
-					System.out.println("Turno de " + jugador2 + ". Puntuacion: " + visible2);
+				if (jugadores.get(1).getCantidadCartas() == 1) {
+					System.out.println("Turno de " + jugadores.get(1).getNombre() + ". Puntuacion: "
+							+ jugadores.get(1).getVisible());
 				} else {
-					System.out.println("Turno de " + jugador2 + ". Puntuacion: " + visible2 + " + ?");
+					System.out.println("Turno de " + jugadores.get(1).getNombre() + ". Puntuacion: "
+							+ jugadores.get(1).getVisible() + " + ?");
 				}
 
-				if (robado1 < 3) {
-					if (puntos2 < 4 && visible1 < 4) {
-						puntos2 = puntos(puntos2, carta, cartas2, baraja);
-						robado2++;
-					} else if (puntos2 >= 4 && puntos2 <= 5) {
-						puntos2 = puntos(puntos2, carta, cartas2, baraja);
-						robado2++;
-					} else if (puntos2 > 5) {
-						pasar2 = true;
-					} else if (pasar1 = true){
-						puntos2 = puntos(puntos2, carta, cartas2, baraja);
-						robado2++;
+				if (jugadores.get(0).getTurnos() < 3) {
+					if (jugadores.get(1).getPuntos() < 4) {
+						jugadores.get(1).robar7yMedia();
+					} else if (jugadores.get(1).getPuntos() >= 4 && jugadores.get(1).getPuntos() < 5) {
+						jugadores.get(1).robar7yMedia();
+					} else if (jugadores.get(1).getPuntos() >= 5) {
+						jugadores.get(1).pasar();
 					}
-				} else if (robado1 >= 3) {
-					if (puntos2 <= 4) {
-						puntos2 = puntos(puntos2, carta, cartas2, baraja);
-						robado2++;
-					} else {
-						if (pasar1) {
-							puntos2 = puntos(puntos2, carta, cartas2, baraja);
-							robado2++;
-						} else {
-							pasar2 = true;
-						}
+				} else if (jugadores.get(0).getTurnos() >= 3) {
+					if (jugadores.get(1).getPuntos() <= 4) {
+						jugadores.get(1).robar7yMedia();
+					} else if (jugadores.get(1).getPuntos() >= 5) {
+						jugadores.get(1).pasar();
 					}
 				}
-				
+//				System.out.println(jugadores.get(1));
 				turno = false;
 			}
 		}
-		
+
+		fin(jugadores);
+	}
+
+	public static void partida(ArrayList<Persona> jugadores, Baraja baraja) {
+		boolean turno = false;
+		int pers = 0;
+
+		while (!jugadores.get(0).getPasar() || !jugadores.get(1).getPasar()) {
+			System.out.println("\n");
+
+			if (!turno) {
+
+				Persona persona = jugadores.get(pers);
+				turno(persona, baraja);
+				pers++;
+				turno = true;
+
+			} else if (turno) {
+
+				Persona persona = jugadores.get(pers);
+				turno(persona, baraja);
+				pers--;
+				turno = false;
+
+			}
+		}
+
+		fin(jugadores);
+	}
+
+	public static void turno(Persona persona, Baraja baraja) {
+		boolean error = false;
+
+		if (persona.getCantidadCartas() == 0) {
+			persona.robar7yMedia();
+		}
+
+		System.out.println(
+				"Turno de " + persona.getNombre() + ". Puntuacion: " + persona.getPuntos() + "\n¿Que vas a hacer?");
+
+		System.out.println("\n1. Coger\n2. Pasar");
+
+		do {
+			System.out.print("->: ");
+			switch (Integer.parseInt(sc.next())) {
+			case 1:
+				persona.robar7yMedia();
+				break;
+
+			case 2:
+				persona.pasar();
+				break;
+
+			default:
+				System.out.println("\nElige una opcion correcta\n");
+				error = true;
+				break;
+			}
+		} while (error);
+	}
+
+	public static void fin(ArrayList<Persona> jugadores) {
 		System.out.println();
-		System.out.println(jugador1 + ": " + puntos1);
-		System.out.println(jugador2 + ": " + puntos2);
+		System.out.println(jugadores.get(0).getNombre() + ": " + jugadores.get(0).getPuntos());
+		System.out.println(jugadores.get(1).getNombre() + ": " + jugadores.get(1).getPuntos());
 
-		if (puntos2 < puntos1 && puntos1 <= 7.5) {
-			System.out.println("\nEl ganador es: " + jugador1 + " con un " + puntos1 + "\n\n");
-		} else if (puntos1 < puntos2 && puntos2 <= 7.5) {
-			System.out.println("\nEl ganador es: " + jugador2 + " con un " + puntos2 + "\n\n");
-		} else if (puntos1 < puntos2 && puntos1 >= 7.5) {
-			System.out.println("\nEl ganador es: " + jugador1 + " con un " + puntos1 + "\n\n");
-		} else if (puntos2 < puntos1 && puntos2 >= 7.5) {
-			System.out.println("\nEl ganador es: " + jugador2 + " con un " + puntos2 + "\n\n");
-		} else if (puntos1 < puntos2) {
-			System.out.println("\nEl ganador es: " + jugador1 + " con un " + puntos1 + "\n\n");
-		} else if (puntos2 < puntos1) {
-			System.out.println("\nEl ganador es: " + jugador2 + " con un " + puntos2 + "\n\n");
+		if (jugadores.get(1).getPuntos() < jugadores.get(0).getPuntos() && jugadores.get(0).getPuntos() <= 7.5) {
+
+			System.out.println("\nEl ganador es: " + jugadores.get(0).getNombre() + " con un "
+					+ jugadores.get(0).getPuntos() + "\n\n");
+
+		} else if (jugadores.get(0).getPuntos() < jugadores.get(1).getPuntos() && jugadores.get(1).getPuntos() <= 7.5) {
+
+			System.out.println("\nEl ganador es: " + jugadores.get(1).getNombre() + " con un "
+					+ jugadores.get(1).getPuntos() + "\n\n");
+
+		} else if (jugadores.get(0).getPuntos() < jugadores.get(1).getPuntos() && jugadores.get(0).getPuntos() >= 7.5) {
+
+			System.out.println("\nEl ganador es: " + jugadores.get(0).getNombre() + " con un "
+					+ jugadores.get(0).getPuntos() + "\n\n");
+
+		} else if (jugadores.get(1).getPuntos() < jugadores.get(0).getPuntos() && jugadores.get(1).getPuntos() >= 7.5) {
+
+			System.out.println("\nEl ganador es: " + jugadores.get(1).getNombre() + " con un "
+					+ jugadores.get(1).getPuntos() + "\n\n");
+
+		} else if (jugadores.get(0).getPuntos() < jugadores.get(1).getPuntos()) {
+
+			System.out.println("\nEl ganador es: " + jugadores.get(0).getNombre() + " con un "
+					+ jugadores.get(0).getPuntos() + "\n\n");
+
+		} else if (jugadores.get(1).getPuntos() < jugadores.get(0).getPuntos()) {
+
+			System.out.println("\nEl ganador es: " + jugadores.get(1).getNombre() + " con un "
+					+ jugadores.get(1).getPuntos() + "\n\n");
+
 		} else {
-			System.out.println("\nEMPATE con un " + puntos1 + "\n\n");
-		}
-	}
-	
-	private static boolean accion(int opc) {
-		switch (opc) {
-		case 1:
-		case 2:
-			return true;
-
-		default:
-			System.out.println("\nElige una opcion correcta\n");
-			return false;
+			System.out.println("\nEMPATE con un " + jugadores.get(0).getPuntos() + "\n\n");
 		}
 	}
 
-	private static double puntos(double puntos, Carta carta, ArrayList<Carta> cartas, Baraja baraja) {
-		cartas.add(baraja.robar());
-		carta = cartas.get(cartas.size() - 1);
-		puntos += carta.getValor7yMedia();
-		return puntos;
-	}
-	
 }
