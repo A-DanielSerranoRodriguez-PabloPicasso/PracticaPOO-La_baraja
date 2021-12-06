@@ -80,7 +80,8 @@ public class Baraja {
 				cont++;
 			}
 		}
-		barajar();
+		if (barajar)
+			barajar();
 	}
 
 	// Methods
